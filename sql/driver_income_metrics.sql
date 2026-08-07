@@ -16,14 +16,30 @@ FROM fact_trips
 GROUP BY trip_date, taxi_type, pickup_zone
 ORDER BY trip_date, total_revenue DESC;
 
--- та же метрика, но по неделям и месяцам (для дашборда — разные уровни детализации)
+-- выручка по неделям
 SELECT
     toStartOfWeek(pickup_datetime) AS week,
     taxi_type,
-    sum(total_amount) AS total_revenue
+    count() AS trips_count,
+    sum(total_amount) AS total_revenue,
+    sum(fare_amount) AS total_fare,
+    sum(tip_amount) AS total_tips
 FROM fact_trips
 GROUP BY week, taxi_type
 ORDER BY week;
+
+-- и по месяцам (для дашборда — разные уровни детализации)
+
+SELECT
+    toStartOfMonth(pickup_datetime) AS month,
+    taxi_type,
+    count() AS trips_count,
+    sum(total_amount) AS total_revenue,
+    sum(fare_amount) AS total_fare,
+    sum(tip_amount) AS total_tips
+FROM fact_trips
+GROUP BY month, taxi_type
+ORDER BY month, taxi_type;
 
 
 -- 2. Доходность в час — ключевая метрика для водителя:
