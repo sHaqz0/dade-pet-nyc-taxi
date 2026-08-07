@@ -216,3 +216,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# Data files (never commit datasets)
+*.parquet
+*.csv
+*.gz
+*.zip

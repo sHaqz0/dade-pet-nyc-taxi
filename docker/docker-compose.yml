@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: taxi_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: taxi_user
+      POSTGRES_PASSWORD: taxi_pass
+      POSTGRES_DB: taxi_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.3
+    container_name: taxi_clickhouse
+    restart: always
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+
+  airflow:
+    build:
+      context: .
+      dockerfile: airflow.Dockerfile
+    container_name: taxi_airflow
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../dags:/opt/airflow/dags
+      - airflow_data:/opt/airflow
+    command: standalone
+
+  superset:
+    image: apache/superset:latest
+    container_name: taxi_superset
+    restart: always
+    environment:
+      SUPERSET_SECRET_KEY: "temporary_secret_key_change_later"
+    ports:
+      - "8088:8088"
+    volumes:
+      - superset_data:/app/superset_home
+
+volumes:
+  postgres_data:
+  clickhouse_data:
+  airflow_data:
+  superset_data:
