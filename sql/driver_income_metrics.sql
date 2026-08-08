@@ -98,3 +98,46 @@ GROUP BY pickup_zone
 HAVING trips_count > 1000
 ORDER BY avg_revenue_per_hour DESC
 LIMIT 5;
+
+-- 6. Тепловая карта доходности в час: День недели x Час суток
+-- toDayOfWeek: 1 = Понедельник, 7 = Воскресенье
+SELECT
+    toDayOfWeek(pickup_datetime) AS day_of_week,
+    toHour(pickup_datetime) AS pickup_hour,
+    avg(total_amount / greatest(dateDiff('second', pickup_datetime, dropoff_datetime) / 3600.0, 0.01)) AS avg_hourly_rate,
+    count() AS total_trips
+FROM fact_trips
+WHERE dropoff_datetime > pickup_datetime
+GROUP BY day_of_week, pickup_hour
+ORDER BY day_of_week, pickup_hour;
+
+
+-- 7. Yellow vs Green — что выгоднее водителю в среднем
+SELECT
+    taxi_type,
+    avg(total_amount / greatest(dateDiff('second', pickup_datetime, dropoff_datetime) / 3600.0, 0.01)) AS avg_revenue_per_hour,
+    avg(fare_amount / greatest(trip_distance, 0.01)) AS avg_revenue_per_mile,
+    count() AS trips_count
+FROM fact_trips
+WHERE dropoff_datetime > pickup_datetime
+GROUP BY taxi_type;
+
+-- 8. Будни vs выходные
+SELECT
+    taxi_type,
+    if(toDayOfWeek(pickup_datetime) IN (6, 7), 'weekend', 'weekday') AS day_type,
+    avg(total_amount / greatest(dateDiff('second', pickup_datetime, dropoff_datetime) / 3600.0, 0.01)) AS avg_revenue_per_hour,
+    count() AS trips_count
+FROM fact_trips
+WHERE dropoff_datetime > pickup_datetime
+GROUP BY taxi_type, day_type;
+
+-- 9. Общий тренд доходности по часам суток (без разбивки по зонам)
+SELECT
+    toHour(pickup_datetime) AS pickup_hour,
+    avg(total_amount / greatest(dateDiff('second', pickup_datetime, dropoff_datetime) / 3600.0, 0.01)) AS avg_revenue_per_hour,
+    count() AS trips_count
+FROM fact_trips
+WHERE dropoff_datetime > pickup_datetime
+GROUP BY pickup_hour
+ORDER BY pickup_hour;
