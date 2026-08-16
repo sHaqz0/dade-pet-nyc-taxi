@@ -40,7 +40,9 @@ services:
     command: standalone
 
   superset:
-    image: apache/superset:latest
+    build:
+      context: .
+      dockerfile: superset.Dockerfile
     container_name: taxi_superset
     restart: always
     environment:
